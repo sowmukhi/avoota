@@ -48,8 +48,12 @@ public class RatingCalculator {
         for (Category category : wrapper.getResponse().getCategoryList()) {
             if (category == null || category.getReviewList() == null) continue;
 
-            List<Review> reviews = category.getReviewList();
             String categoryName = category.getCategoryName();
+            // Skip "NONE"
+            if ("NONE".equalsIgnoreCase(categoryName)) {
+                continue;
+            }
+            List<Review> reviews = category.getReviewList();
 
             // Calculate average rating
             double averageRating = reviews.stream()
@@ -133,8 +137,13 @@ public class RatingCalculator {
         for (Category category : wrapper.getResponse().getCategoryList()) {
             if (category == null || category.getReviewList() == null) continue;
 
-            List<Review> reviews = category.getReviewList();
             String categoryName = category.getCategoryName();
+
+            if ("NONE".equalsIgnoreCase(categoryName)) {
+                continue;
+            }
+
+            List<Review> reviews = category.getReviewList();
 
             // Average rating
             double averageRating = reviews.stream()
