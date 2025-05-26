@@ -122,4 +122,62 @@ public class RatingCalculator {
 
         return result;
     }
+
+    public Map<String, CategoryRatingResult> calculateFullCategoryRatings(AvootaResponseWrapper wrapper) {
+        if (wrapper == null || wrapper.getResponse() == null || wrapper.getResponse().getCategoryList() == null) {
+            return Collections.emptyMap();
+        }
+
+        Map<String, CategoryRatingResult> result = new HashMap<>();
+
+        for (Category category : wrapper.getResponse().getCategoryList()) {
+            if (category == null || category.getReviewList() == null) continue;
+
+            List<Review> reviews = category.getReviewList();
+            String categoryName = category.getCategoryName();
+
+            // Average rating
+            double averageRating = reviews.stream()
+                    .filter(Objects::nonNull)
+                    .mapToInt(Review::getRating)
+                    .average()
+                    .orElse(0.0);
+
+            // Average subratings
+            Map<String, List<Integer>> subratingValues = new HashMap<>();
+            for (Review review : reviews) {
+                if (review != null && review.getSubratings() != null) {
+                    for (Map.Entry<String, Subrating> entry : review.getSubratings().entrySet()) {
+                        String subratingName = entry.getValue().getLocalized_name();
+                        int value = entry.getValue().getValue();
+                        subratingValues.computeIfAbsent(subratingName, k -> new ArrayList<>()).add(value);
+                    }
+                }
+            }
+            Map<String, Double> averageSubratings = subratingValues.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            e -> e.getValue().stream().mapToInt(Integer::intValue).average().orElse(0.0)
+                    ));
+
+            // Rating percentages (Excellent, Good, Average, Poor, Bad)
+            Map<String, Long> ratingCounts = reviews.stream()
+                    .map(review -> getRatingLabel(review.getRating()))
+                    .collect(Collectors.groupingBy(label -> label, Collectors.counting()));
+            long total = reviews.size();
+
+            Map<String, Double> ratingPercentages = new LinkedHashMap<>();
+            for (String label : Arrays.asList("Excellent", "Good", "Average", "Poor", "Bad")) {
+                long count = ratingCounts.getOrDefault(label, 0L);
+                double percentage = total == 0 ? 0.0 : (count * 100.0) / total;
+                ratingPercentages.put(label, percentage);
+            }
+
+            CategoryRatingResult ratingResult = new CategoryRatingResult(averageRating, averageSubratings, ratingPercentages);
+            result.put(categoryName, ratingResult);
+        }
+
+        return result;
+    }
+
 }

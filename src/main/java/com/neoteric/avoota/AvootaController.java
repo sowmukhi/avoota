@@ -37,6 +37,12 @@ public class AvootaController {
         return ratingCalculator.calculateRatingPercentagePerCategory(wrapper);
     }
 
+    @PostMapping("/full-category-rating")
+    public Map<String, CategoryRatingResult> getFullCategoryRatings(@RequestBody AvootaResponseWrapper wrapper) {
+        return ratingCalculator.calculateFullCategoryRatings(wrapper);
+    }
+
+
 //    private double calculateAverageRating(AvootaResponseWrapper wrapper) {
 //        if (wrapper == null || wrapper.getResponse() == null || wrapper.getResponse().getCategoryList() == null) {
 //            return 0.0;

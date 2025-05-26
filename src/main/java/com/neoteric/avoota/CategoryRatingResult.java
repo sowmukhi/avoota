@@ -27,6 +27,18 @@ public class CategoryRatingResult {
         return subratings;
     }
 
+    public void setAverageRating(double averageRating) {
+        this.averageRating = averageRating;
+    }
+
+    public void setSubratings(Map<String, Double> subratings) {
+        this.subratings = subratings;
+    }
+
+    public void setRatingBreakdownPercentages(Map<String, Double> ratingBreakdownPercentages) {
+        this.ratingBreakdownPercentages = ratingBreakdownPercentages;
+    }
+
     public Map<String, Double> getRatingBreakdownPercentages() {
         return ratingBreakdownPercentages;
     }
