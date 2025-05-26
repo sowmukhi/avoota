@@ -1,5 +1,6 @@
 package com.neoteric.avoota;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,7 +13,9 @@ import java.util.Map;
 @RequestMapping("/api")
 public class AvootaController {
 
-    RatingCalculator ratingCalculator = new RatingCalculator();
+    @Autowired
+    private RatingCalculator ratingCalculator;
+    //RatingCalculator ratingCalculator = new RatingCalculator();
 
     @PostMapping("/average-rating")
     public double getAverageRating(@RequestBody AvootaResponseWrapper wrapper) {
@@ -27,6 +30,11 @@ public class AvootaController {
     @PostMapping("/average-rating-and-subratings")
     public Map<String, CategoryRatingResult> getAverageRatingAndSubratings(@RequestBody AvootaResponseWrapper wrapper) {
         return ratingCalculator.calculateAveragePerCategory(wrapper);
+    }
+
+    @PostMapping("/rating-percentages")
+    public Map<String, Map<String, Double>> getRatingPercentages(@RequestBody AvootaResponseWrapper wrapper) {
+        return ratingCalculator.calculateRatingPercentagePerCategory(wrapper);
     }
 
 //    private double calculateAverageRating(AvootaResponseWrapper wrapper) {

@@ -14,3 +14,4 @@ public class AvootaApplication {
 //http://localhost:8080/api/average-rating
 //http://localhost:8080/api/average-rating-per-category
 //http://localhost:8080/api/average-rating-and-subratings
+//http://localhost:8080/api/rating-percentages

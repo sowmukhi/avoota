@@ -4,6 +4,10 @@ public class Subrating {
     private int value;
     private String localized_name;
 
+    public Subrating() {
+        // Default constructor needed by Jackson
+    }
+
     public int getValue() {
         return value;
     }

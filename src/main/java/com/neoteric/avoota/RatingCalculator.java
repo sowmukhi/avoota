@@ -1,11 +1,14 @@
 package com.neoteric.avoota;
 
+import org.springframework.stereotype.Service;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+@Service
 public class RatingCalculator {
-    public static double calculateAverageRating(AvootaResponseWrapper wrapper) {
+    public double calculateAverageRating(AvootaResponseWrapper wrapper) {
         if (wrapper == null || wrapper.getResponse() == null || wrapper.getResponse().getCategoryList() == null) {
             return 0.0;
         }
@@ -20,7 +23,7 @@ public class RatingCalculator {
 
         return average.orElse(0.0);
     }
-    public static Map<String, Double> calculateAveragePerSubratingCategory(AvootaResponseWrapper wrapper) {
+    public Map<String, Double> calculateAveragePerSubratingCategory(AvootaResponseWrapper wrapper) {
         if (wrapper == null || wrapper.getResponse() == null || wrapper.getResponse().getCategoryList() == null) {
             return Map.of();
         }
@@ -35,7 +38,7 @@ public class RatingCalculator {
                         Collectors.averagingInt(Subrating::getValue)
                 ));
     }
-    public static Map<String, CategoryRatingResult> calculateAveragePerCategory(AvootaResponseWrapper wrapper) {
+    public Map<String, CategoryRatingResult> calculateAveragePerCategory(AvootaResponseWrapper wrapper) {
         if (wrapper == null || wrapper.getResponse() == null || wrapper.getResponse().getCategoryList() == null) {
             return Collections.emptyMap();
         }
@@ -76,6 +79,45 @@ public class RatingCalculator {
 
             CategoryRatingResult ratingResult = new CategoryRatingResult(averageRating, averageSubratings);
             result.put(categoryName, ratingResult);
+        }
+
+        return result;
+    }
+    private String getRatingLabel(int rating) {
+        if (rating >= 5) return "Excellent";
+        else if (rating == 4) return "Good";
+        else if (rating == 3) return "Average";
+        else if (rating == 2) return "Poor";
+        else return "Bad";
+    }
+    public Map<String, Map<String, Double>> calculateRatingPercentagePerCategory(AvootaResponseWrapper wrapper) {
+        Map<String, Map<String, Double>> result = new HashMap<>();
+
+        if (wrapper == null || wrapper.getResponse() == null || wrapper.getResponse().getCategoryList() == null) {
+            return result;
+        }
+
+        for (Category category : wrapper.getResponse().getCategoryList()) {
+            List<Review> reviews = category.getReviewList();
+            if (reviews == null || reviews.isEmpty()) continue;
+
+            // Step 1: Count ratings by label
+            Map<String, Long> ratingCounts = reviews.stream()
+                    .map(review -> getRatingLabel(review.getRating()))
+                    .collect(Collectors.groupingBy(label -> label, Collectors.counting()));
+
+            long total = reviews.size();
+
+            // Step 2: Calculate percentage
+            Map<String, Double> ratingPercentages = new LinkedHashMap<>();
+            for (String label : Arrays.asList("Excellent", "Good", "Average", "Poor", "Bad")) {
+                long count = ratingCounts.getOrDefault(label, 0L);
+                double percentage = total == 0 ? 0.0 : (count * 100.0) / total;
+                ratingPercentages.put(label, percentage);
+            }
+
+            // Add to result with category name
+            result.put(category.getCategoryName(), ratingPercentages);
         }
 
         return result;
